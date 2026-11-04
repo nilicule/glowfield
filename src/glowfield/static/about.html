@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Glowfield</title>
+  <meta name="description" content="Glowfield is a no-guess logic puzzle about catching fireflies.">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="sky" aria-hidden="true"><div class="moon"></div></div>
+  <svg class="meadow" viewBox="0 0 1200 220" preserveAspectRatio="none" aria-hidden="true">
+    <path class="far" d="M0 140 C120 110 220 150 340 125 S560 95 680 130 S900 150 1020 115 S1160 120 1200 130 V220 H0Z"/>
+    <g class="trees">
+      <path d="M90 150 l28 -90 l28 90z M112 150 h12 v20 h-12z"/>
+      <path d="M150 155 l20 -62 l20 62z"/>
+      <path d="M1040 145 l32 -105 l32 105z M1066 145 h12 v20 h-12z"/>
+      <path d="M1000 150 l22 -70 l22 70z"/>
+    </g>
+    <path class="near" d="M0 175 C150 160 260 185 420 170 S700 150 840 172 S1080 185 1200 165 V220 H0Z"/>
+    <g class="grass"></g>
+  </svg>
+
+  <main class="app about">
+    <a class="back" href="/">&larr; Back to the game</a>
+
+    <header class="top">
+      <img class="about-icon" src="/static/favicon.svg" alt="" width="72" height="72">
+      <h1 class="title">About Glow<em>field</em></h1>
+      <p class="tagline">A small logic puzzle about catching fireflies on a summer night.</p>
+    </header>
+
+    <section class="lead">
+      <p>
+        Glowfield turns minesweeper inside out. You don't uncover cells and hope.
+        Every number is already showing, and each one tells you how many fireflies
+        are hiding in the eight cells around it. Your job is to work out exactly
+        where they all are.
+      </p>
+      <p class="lead-rules">
+        <span><b>Double-click</b> to catch a firefly</span>
+        <span><b>Click once</b> to rule a cell out</span>
+        <span><b>Three lanterns</b>, one per wrong catch</span>
+      </p>
+    </section>
+
+    <div class="pair">
+      <section class="panel">
+        <h2>You never have to guess</h2>
+        <p>
+          Every board starts with a clue on every cell that isn't a firefly. Clues
+          are then removed one by one, and after each removal a solver checks that
+          the puzzle can still be finished by logic alone. If it can't, the clue
+          goes back.
+        </p>
+        <p>
+          Hints use the same solver, so they can always show the next step and
+          explain why it works.
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>Your data</h2>
+        <p>
+          There are no accounts, and the server doesn't store anything about you.
+        </p>
+        <p>
+          The only thing kept is a small cookie in your own browser that remembers
+          you've solved today's daily puzzle, so it can show your result instead of
+          a fresh board.
+        </p>
+      </section>
+    </div>
+
+    <section class="panel">
+      <h2>Difficulty</h2>
+      <p>Levels differ in the kind of reasoning they ask for, not just in board size.</p>
+      <ul class="ladder">
+        <li style="--lvl:1"><div class="meter" aria-label="Logic level 1 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Beginner <span>6×6</span></h3><p>One clue at a time, with plenty of easy moves available at every point.</p></div></li>
+        <li style="--lvl:1"><div class="meter" aria-label="Logic level 1 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Easy <span>7×7</span></h3><p>Still one clue at a time, with fewer clues and fewer obvious moves.</p></div></li>
+        <li style="--lvl:2"><div class="meter" aria-label="Logic level 2 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Medium <span>8×8</span></h3><p>Sometimes you compare two clues, where one's cells sit inside the other's.</p></div></li>
+        <li style="--lvl:3"><div class="meter" aria-label="Logic level 3 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Hard <span>9×9</span></h3><p>Adds overlap reasoning: two clues share some cells, and one needs more fireflies than the other.</p></div></li>
+        <li style="--lvl:3"><div class="meter" aria-label="Logic level 3 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Expert <span>10×10</span></h3><p>Leans on overlap reasoning again and again.</p></div></li>
+        <li class="daily" style="--lvl:2"><div class="meter" aria-label="Logic level 2 of 3"><i></i><i></i><i></i></div>
+          <div><h3>Daily <span>8×8</span></h3><p>One Medium board a day, the same for everyone. You can solve it once.</p></div></li>
+      </ul>
+    </section>
+
+    <section class="panel closing">
+      <h2>Open source</h2>
+      <p>
+        Glowfield is free and open source under the MIT License. Use it, change it
+        and share it, as long as you keep the copyright notice. The code, issues and
+        ideas live on GitHub.
+      </p>
+      <div class="actions">
+        <a class="btn primary" href="https://github.com/nilicule/glowfield" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>
+          View on GitHub
+        </a>
+        <a class="btn ghost" href="https://github.com/nilicule/glowfield/blob/main/LICENSE" rel="noopener">Read the license</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>© 2026 Remco Brink</span>
+      <span aria-hidden="true">·</span>
+      <a href="/">Back to the game</a>
+    </footer>
+  </main>
+
+  <script src="/static/sky.js"></script>
+</body>
+</html>

@@ -91,3 +91,8 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 @app.get("/", include_in_schema=False)
 def index() -> FileResponse:
     return FileResponse(STATIC / "index.html")
+
+
+@app.get("/about", include_in_schema=False)
+def about() -> FileResponse:
+    return FileResponse(STATIC / "about.html")

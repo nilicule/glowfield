@@ -49,3 +49,10 @@ def test_hint():
 def test_index_served():
     r = client.get("/")
     assert r.status_code == 200 and "Glowfield" in r.text
+
+
+def test_about_page_links_to_github():
+    r = client.get("/about")
+    assert r.status_code == 200
+    assert "https://github.com/nilicule/glowfield" in r.text
+    assert 'href="/about"' in client.get("/").text
