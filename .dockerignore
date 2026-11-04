@@ -1,0 +1,14 @@
+.git
+.venv
+.pytest_cache
+**/__pycache__
+*.py[oc]
+dist
+build
+tests
+.claude
+CLAUDE.md
+CLAUDE.local.md
+.mcp.json
+Dockerfile
+.dockerignore

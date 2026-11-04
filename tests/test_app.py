@@ -55,4 +55,20 @@ def test_about_page_links_to_github():
     r = client.get("/about")
     assert r.status_code == 200
     assert "https://github.com/nilicule/glowfield" in r.text
-    assert 'href="/about"' in client.get("/").text
+    assert 'href="about"' in client.get("/").text
+
+
+def test_pages_use_relative_urls_under_a_root_path():
+    sub = TestClient(app, root_path="/glowfield")
+    page = sub.get("/glowfield/").text
+    assert '<base href="/glowfield/">' in page
+    assert 'src="static/game.js"' in page and 'src="/static' not in page
+    assert sub.get("/glowfield/static/game.js").status_code == 200
+    assert sub.get("/glowfield/api/difficulties").status_code == 200
+    # also works when the proxy strips the prefix before forwarding
+    assert sub.get("/api/difficulties").status_code == 200
+    assert '<base href="/glowfield/">' in sub.get("/about").text
+
+
+def test_healthz():
+    assert client.get("/healthz").json() == {"ok": True}

@@ -17,6 +17,41 @@ uv run glowfield            # http://127.0.0.1:8000
 uv run glowfield --reload   # auto-reload while developing
 ```
 
+## Deploy with Docker
+
+```sh
+docker build -t glowfield .
+docker run -d --name glowfield --restart unless-stopped \
+  -p 127.0.0.1:8000:8000 \
+  -e ROOT_PATH=/glowfield \
+  -e TZ=Europe/Amsterdam \
+  glowfield
+```
+
+The image also builds with Podman (`podman build -t glowfield .`).
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `ROOT_PATH` | *(empty)* | URL prefix when served from a subdirectory, e.g. `/glowfield` |
+| `TZ` | `UTC` | The daily puzzle changes at midnight in this timezone |
+| `WEB_CONCURRENCY` | `2` | Uvicorn worker processes |
+| `PORT` | `8000` | Port inside the container |
+
+The container has a health check on `/healthz`. All URLs in the pages are
+relative, so the app works under any prefix. Nginx can either strip the
+prefix or pass it through:
+
+```nginx
+absolute_redirect off;
+location = /glowfield { return 301 /glowfield/; }
+location /glowfield/ {
+    proxy_pass http://127.0.0.1:8000/;   # trailing slash strips /glowfield
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
 ## Test
 
 ```sh

@@ -77,7 +77,8 @@ function readDaily() {
 
 function saveDaily(record) {
   const value = encodeURIComponent(JSON.stringify(record));
-  document.cookie = `${DAILY_COOKIE}=${value}; Max-Age=${60 * 60 * 24 * 400}; Path=/; SameSite=Lax`;
+  const path = new URL(document.baseURI).pathname; // e.g. /glowfield/
+  document.cookie = `${DAILY_COOKIE}=${value}; Max-Age=${60 * 60 * 24 * 400}; Path=${path}; SameSite=Lax`;
 }
 
 // The saved win for this daily date, if this browser already solved it.
@@ -112,7 +113,7 @@ function markDailyPill() {
 }
 
 async function loadDifficulties() {
-  const list = await (await fetch("/api/difficulties")).json();
+  const list = await (await fetch("api/difficulties")).json();
   const levels = [{ key: "daily", label: "Daily" }, ...list];
   $("#levels").innerHTML = levels
     .map((d) => `<button class="level" data-level="${d.key}">${d.label}</button>`)
@@ -132,9 +133,9 @@ function setActiveLevel(level) {
 
 async function loadPuzzle({ difficulty, seed } = {}) {
   let url;
-  if (difficulty === "daily") url = "/api/daily";
+  if (difficulty === "daily") url = "api/daily";
   else {
-    url = `/api/puzzle?difficulty=${encodeURIComponent(difficulty)}`;
+    url = `api/puzzle?difficulty=${encodeURIComponent(difficulty)}`;
     if (seed != null) url += `&seed=${seed}`;
   }
   const res = await fetch(url);
@@ -603,7 +604,7 @@ async function requestHint() {
   flushPending();
   const fireflies = [], empty = [];
   for (const [k, m] of state.marks) (m === "f" ? fireflies : empty).push(parseKey(k));
-  const res = await fetch("/api/hint", {
+  const res = await fetch("api/hint", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ difficulty: state.puzzle.difficulty, seed: state.puzzle.seed, fireflies, empty }),

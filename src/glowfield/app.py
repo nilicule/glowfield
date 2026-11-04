@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import secrets
 from datetime import date
+from functools import lru_cache
+from html import escape
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -25,6 +27,40 @@ DAILY_DIFFICULTY = "medium"
 DAILY_SEED_BASE = 100_000_000
 
 app = FastAPI(title="Glowfield")
+
+
+class SubpathMiddleware:
+    """Make the app work under a URL prefix however the proxy forwards it.
+
+    With ``--root-path /glowfield`` uvicorn prepends the prefix to every
+    request path, which is right when the proxy strips it (proxy_pass with
+    a trailing slash). If the proxy passes the prefix through instead, the
+    path arrives doubled (/glowfield/glowfield/...), so drop one copy. A bare
+    /glowfield redirects to /glowfield/ so relative URLs resolve.
+    """
+
+    def __init__(self, app) -> None:
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        root = scope.get("root_path", "")
+        if root and scope["type"] == "http":
+            path = scope["path"]
+            doubled = root + root
+            if path == doubled or path.startswith(doubled + "/"):
+                path = path[len(root):]
+                scope = dict(scope, path=path, raw_path=path.encode())
+            if path == root:
+                query = scope.get("query_string", b"").decode()
+                location = root + "/" + (f"?{query}" if query else "")
+                await send({"type": "http.response.start", "status": 308,
+                            "headers": [(b"location", location.encode())]})
+                await send({"type": "http.response.body", "body": b""})
+                return
+        await self.app(scope, receive, send)
+
+
+app.add_middleware(SubpathMiddleware)
 
 
 def daily_seed(day: date) -> int:
@@ -85,14 +121,35 @@ def get_hint(req: HintRequest) -> dict | None:
     }
 
 
+@app.get("/healthz", include_in_schema=False)
+def healthz() -> dict:
+    return {"ok": True}
+
+
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
+@lru_cache
+def _read(name: str) -> str:
+    return (STATIC / name).read_text()
+
+
+def _page(name: str, request: Request) -> HTMLResponse:
+    """Serve a page with a <base> pointing at wherever the app is mounted.
+
+    All URLs in the pages are relative, so behind a proxy at e.g.
+    /glowfield/ (uvicorn --root-path /glowfield) everything resolves there.
+    """
+    base = request.scope.get("root_path", "").rstrip("/") + "/"
+    html = _read(name).replace("<head>", f'<head>\n  <base href="{escape(base)}">', 1)
+    return HTMLResponse(html)
+
+
 @app.get("/", include_in_schema=False)
-def index() -> FileResponse:
-    return FileResponse(STATIC / "index.html")
+def index(request: Request) -> HTMLResponse:
+    return _page("index.html", request)
 
 
 @app.get("/about", include_in_schema=False)
-def about() -> FileResponse:
-    return FileResponse(STATIC / "about.html")
+def about(request: Request) -> HTMLResponse:
+    return _page("about.html", request)
