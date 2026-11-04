@@ -1,0 +1,16 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Claude / AI tooling
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+.mcp.json
