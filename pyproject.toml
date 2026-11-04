@@ -3,6 +3,8 @@ name = "glowfield"
 version = "0.1.0"
 description = "Glowfield: a no-guess reverse minesweeper with fireflies"
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     { name = "Remco Brink", email = "nilicule@gmail.com" }
 ]

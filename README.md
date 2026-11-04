@@ -35,3 +35,8 @@ uv run pytest
 
 Puzzles are deterministic per `difficulty-seed`, e.g. `/#hard-1234`, so a
 puzzle ID can be shared or replayed.
+
+## License
+
+[MIT](LICENSE) © 2026 Remco Brink. You're free to use, change and share
+Glowfield, as long as you keep the copyright notice and give attribution.
