@@ -36,8 +36,13 @@
         <span class="hud-icon" data-firefly></span>
         <span id="found">0 / 0</span>
       </div>
-      <div id="lives" class="lives" title="Lanterns left (mistakes)">
-        <span></span><span></span><span></span>
+      <div class="hud-mid">
+        <div id="lives" class="lives" title="Lanterns left (mistakes)">
+          <span></span><span></span><span></span>
+        </div>
+        <div id="hints-left" class="hint-pips" title="Hints left">
+          <span><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg></span><span><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.3 1.1 2.2h5c0-.9.4-1.6 1.1-2.2A6 6 0 0 0 12 3z"/></svg></span>
+        </div>
       </div>
       <div class="hud-item">
         <span id="puzzle-name" class="pname"></span>
@@ -91,7 +96,7 @@
         <li><b>Numbers</b> count the fireflies hiding in the eight cells around them.</li>
         <li><b>Double-click</b> a cell to catch a firefly. Catch one where there isn't any and a lantern goes out. Lose all three and the night is over.</li>
         <li><b>Click once</b> to rule a cell out. That's just a note for yourself, so it's never checked. Click again to clear it.</li>
-        <li>Every puzzle can be solved by logic alone. Stuck? <b>Hint</b> shows the next step and explains why.</li>
+        <li>Every puzzle can be solved by logic alone. Stuck? <b>Hint</b> shows the next step and explains why. You get three per puzzle.</li>
       </ul>
       <div class="modal-actions"><button id="help-ok" class="btn primary">Let's play</button></div>
     </div>

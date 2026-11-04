@@ -468,3 +468,25 @@ li[style*="--lvl:3"] .meter i:nth-child(-n + 3) { background: var(--glow); box-s
 
 .btn:focus-visible, .linkish:focus-visible, .close:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
 .btn:focus:not(:focus-visible) { outline: none; }
+
+/* hints left: three bulbs beside the lanterns */
+.hud-mid { display: flex; align-items: center; gap: 16px; }
+.hint-pips { display: flex; gap: 2px; padding-left: 16px; border-left: 1px solid var(--line); }
+.hint-pips span { width: 18px; height: 18px; display: block; transition: opacity .3s, filter .3s; }
+.hint-pips svg {
+  width: 100%; height: 100%; fill: none; stroke: var(--amber);
+  stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 4px rgba(246, 198, 103, .55));
+}
+.hint-pips span.used { opacity: .3; }
+.hint-pips span.used svg { stroke: var(--muted); filter: none; }
+#found, #timer { white-space: nowrap; }
+@media (max-width: 380px) {
+  .hud { display: flex; justify-content: space-between; gap: 8px; }
+  #found { font-size: 17px; }
+  .hud-item { gap: 5px; }
+  .hud-icon { width: 22px; height: 22px; }
+  .hud-mid { gap: 10px; }
+  .hint-pips { padding-left: 10px; }
+  .hint-pips span { width: 16px; height: 16px; }
+}

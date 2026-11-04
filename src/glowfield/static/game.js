@@ -5,6 +5,7 @@
  */
 
 const MAX_MISTAKES = 3;
+const MAX_HINTS = 3; // per puzzle
 const DOUBLE_MS = 260;
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -46,6 +47,7 @@ const state = {
   tapMode: false,
 };
 let pending = null; // single click waiting to see if it becomes a double click
+let activeHint = null; // reason text of the hint currently highlighted on the board
 
 const key = (r, c) => `${r},${c}`;
 const parseKey = (k) => k.split(",").map(Number);
@@ -191,6 +193,7 @@ function puzzleName() {
 
 function resetProgress() {
   cancelPending();
+  activeHint = null;
   state.marks.clear();
   state.history = [];
   state.mistakes = 0;
@@ -260,7 +263,14 @@ function updateStatus() {
   lives.title = `${MAX_MISTAKES - state.mistakes} of ${MAX_MISTAKES} lanterns left`;
   [...lives.children].forEach((l, i) => l.classList.toggle("out", i >= MAX_MISTAKES - state.mistakes));
   $("#undo").disabled = state.history.length === 0 || state.over;
-  $("#hint").disabled = state.over;
+  const left = Math.max(0, MAX_HINTS - state.hints);
+  $("#hint").disabled = state.over || left === 0;
+  const pips = $("#hints-left");
+  pips.title = `${left} of ${MAX_HINTS} hints left`;
+  [...pips.children].forEach((p, i) => p.classList.toggle("used", i >= left));
+  $("#hint").title = left
+    ? `Show the next logical step (${left} of ${MAX_HINTS} left)`
+    : "No hints left for this puzzle";
   $("#restart").disabled = isSolvedDaily();
 }
 
@@ -594,6 +604,7 @@ function closeModal() { $("#modal").hidden = true; }
 
 /* ---------- hints ---------- */
 function clearHint() {
+  activeHint = null;
   boardEl.querySelectorAll(".hint-clue, .hint-cell").forEach((el) =>
     el.classList.remove("hint-clue", "hint-cell"),
   );
@@ -602,6 +613,11 @@ function clearHint() {
 async function requestHint() {
   if (state.over) return;
   flushPending();
+  // Asking again while a hint is still showing just repeats it, for free.
+  if (activeHint) return showMessage(activeHint, "tip");
+  if (state.hints >= MAX_HINTS) {
+    return showMessage(`No hints left for this puzzle. You get ${MAX_HINTS} per puzzle.`, "tip");
+  }
   const fireflies = [], empty = [];
   for (const [k, m] of state.marks) (m === "f" ? fireflies : empty).push(parseKey(k));
   const res = await fetch("api/hint", {
@@ -613,6 +629,8 @@ async function requestHint() {
   clearHint();
   if (!h) return showMessage("Nothing left to deduce. You're nearly there!", "tip");
   state.hints++;
+  activeHint = h.reason;
+  updateStatus();
   h.clues.forEach(([r, c]) => cellEl(key(r, c)).classList.add("hint-clue"));
   h.cells.forEach(([r, c]) => cellEl(key(r, c)).classList.add("hint-cell"));
   showMessage(h.reason, "tip");

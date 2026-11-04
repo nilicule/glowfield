@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import secrets
 from datetime import date
-from functools import lru_cache
 from html import escape
 from pathlib import Path
 
@@ -129,7 +128,6 @@ def healthz() -> dict:
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
 
-@lru_cache
 def _read(name: str) -> str:
     return (STATIC / name).read_text()
 
