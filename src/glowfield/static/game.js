@@ -625,9 +625,10 @@ function newGame() {
 
 function bindControls() {
   $("#new-game").addEventListener("click", newGame);
-  $("#help").addEventListener("toggle", () => {
-    try { localStorage.setItem("glowfield:help", $("#help").open ? "1" : "0"); } catch {}
-  });
+  $("#show-help").addEventListener("click", openHelp);
+  $("#help-close").addEventListener("click", closeHelp);
+  $("#help-ok").addEventListener("click", closeHelp);
+  $("#help").addEventListener("click", (e) => { if (e.target.id === "help") closeHelp(); });
   $("#restart").addEventListener("click", () => { if (!isSolvedDaily()) resetProgress(); });
   $("#undo").addEventListener("click", undo);
   $("#hint").addEventListener("click", requestHint);
@@ -644,9 +645,20 @@ function bindControls() {
   $("#modal-close").addEventListener("click", closeModal);
   $("#modal").addEventListener("click", (e) => { if (e.target.id === "modal") closeModal(); });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") { closeModal(); closeHelp(); }
     if ((e.metaKey || e.ctrlKey) && e.key === "z") { e.preventDefault(); undo(); }
   });
+}
+
+/* ---------- how to play ---------- */
+function openHelp() {
+  $("#help").hidden = false;
+  $("#help-ok").focus();
+}
+function closeHelp() {
+  if ($("#help").hidden) return;
+  $("#help").hidden = true;
+  try { localStorage.setItem("glowfield:help", "seen"); } catch {}
 }
 
 /* ---------- boot ---------- */
@@ -661,16 +673,16 @@ function fromHash() {
 (async function boot() {
   fillIcons();
   bindControls();
-  let helpVisible = true;
+  let firstVisit = true;
   let saved = "beginner";
   try {
-    helpVisible = localStorage.getItem("glowfield:help") !== "0";
+    firstVisit = localStorage.getItem("glowfield:help") !== "seen";
     saved = localStorage.getItem("glowfield:difficulty") || saved;
   } catch {}
-  $("#help").open = helpVisible;
   await loadDifficulties();
   markDailyPill();
   await loadPuzzle(fromHash() ?? { difficulty: saved });
+  if (firstVisit) openHelp();
   window.addEventListener("hashchange", () => {
     const target = fromHash();
     if (target && `#${state.puzzle.daily ? "daily" : state.puzzle.id}` !== location.hash) loadPuzzle(target);
