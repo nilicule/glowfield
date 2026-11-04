@@ -36,6 +36,11 @@ uv run pytest
 Puzzles are deterministic per `difficulty-seed`, e.g. `/#hard-1234`, so a
 puzzle ID can be shared or replayed.
 
+The server is stateless and stores nothing about players. The daily puzzle
+can be solved once per day: a win is remembered in a `gf_daily` cookie in
+the browser, which then shows the finished board instead of a new attempt.
+Losing doesn't set it, so you can retry.
+
 ## License
 
 [MIT](LICENSE) © 2026 Remco Brink. You're free to use, change and share

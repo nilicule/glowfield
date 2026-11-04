@@ -1,6 +1,8 @@
+from datetime import date
+
 from fastapi.testclient import TestClient
 
-from glowfield.app import app
+from glowfield.app import app, daily_seed
 
 client = TestClient(app)
 
@@ -19,7 +21,20 @@ def test_unknown_difficulty_404():
 
 def test_daily():
     data = client.get("/api/daily").json()
-    assert "daily" in data and data["difficulty"] == "medium"
+    assert data["daily"] == date.today().isoformat()
+    assert data["difficulty"] == "medium"
+    assert data["seed"] == daily_seed(date.today())
+
+
+def test_daily_board_cannot_be_loaded_as_a_normal_puzzle():
+    seed = daily_seed(date.today())
+    r = client.get("/api/puzzle", params={"difficulty": "medium", "seed": seed})
+    assert r.status_code == 400
+
+
+def test_server_sets_no_cookies():
+    for path in ("/", "/api/daily", "/api/puzzle"):
+        assert not client.get(path).cookies
 
 
 def test_hint():

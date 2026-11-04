@@ -93,6 +93,51 @@ function neighborKeys(k) {
 /* ---------- loading ---------- */
 let currentLevel = "beginner";
 
+/* ---------- daily record (a cookie in this browser; the server keeps nothing) ---------- */
+const DAILY_COOKIE = "gf_daily";
+
+function readDaily() {
+  const m = document.cookie.match(new RegExp(`(?:^|;\\s*)${DAILY_COOKIE}=([^;]*)`));
+  if (!m) return null;
+  try { return JSON.parse(decodeURIComponent(m[1])); } catch { return null; }
+}
+
+function saveDaily(record) {
+  const value = encodeURIComponent(JSON.stringify(record));
+  document.cookie = `${DAILY_COOKIE}=${value}; Max-Age=${60 * 60 * 24 * 400}; Path=/; SameSite=Lax`;
+}
+
+// The saved win for this daily date, if this browser already solved it.
+function dailyWin(day) {
+  const r = readDaily();
+  return r && r.date === day ? r : null;
+}
+
+function localToday() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function untilTomorrow() {
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  const mins = Math.max(1, Math.round((midnight - now) / 60000));
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h ? `${h}h ${m}m` : `${m}m`;
+}
+
+function isSolvedDaily() {
+  return Boolean(state.puzzle?.daily && dailyWin(state.puzzle.daily));
+}
+
+function markDailyPill() {
+  const btn = document.querySelector('.level[data-level="daily"]');
+  if (!btn) return;
+  const done = Boolean(dailyWin(state.puzzle?.daily ?? localToday()));
+  btn.textContent = done ? "Daily ✓" : "Daily";
+  btn.title = done ? "You've solved today's daily puzzle" : "Today's puzzle, the same for everyone";
+}
+
 async function loadDifficulties() {
   const list = await (await fetch("/api/difficulties")).json();
   const levels = [{ key: "daily", label: "Daily" }, ...list];
@@ -132,6 +177,33 @@ function startPuzzle(p) {
   history.replaceState(null, "", p.daily ? "#daily" : `#${p.id}`);
   try { localStorage.setItem("glowfield:difficulty", p.daily ? "daily" : p.difficulty); } catch {}
   resetProgress();
+  markDailyPill();
+  const win = p.daily && dailyWin(p.daily);
+  if (win) showSolvedDaily(win);
+}
+
+// Today's daily was already solved in this browser: show the finished board, locked.
+function showSolvedDaily(win) {
+  stopTimer();
+  state.over = true;
+  state.elapsed = win.seconds;
+  state.mistakes = win.mistakes;
+  state.hints = win.hints;
+  $("#timer").textContent = fmt(win.seconds);
+  boardEl.querySelectorAll(".cell.open").forEach((el) => {
+    const k = el.dataset.key;
+    state.marks.set(k, state.solution.has(k) ? "f" : "x");
+    renderCell(k);
+  });
+  updateClues();
+  updateStatus();
+  const m = win.mistakes, h = win.hints;
+  showMessage(
+    `You've already solved today's daily in ${fmt(win.seconds)}, with ` +
+      `${m} ${m === 1 ? "mistake" : "mistakes"} and ${h} ${h === 1 ? "hint" : "hints"}. ` +
+      `A new one arrives in ${untilTomorrow()}.`,
+    "tip",
+  );
 }
 
 function puzzleName() {
@@ -215,6 +287,7 @@ function updateStatus() {
   [...lives.children].forEach((l, i) => l.classList.toggle("out", i >= MAX_MISTAKES - state.mistakes));
   $("#undo").disabled = state.history.length === 0 || state.over;
   $("#hint").disabled = state.over;
+  $("#restart").disabled = isSolvedDaily();
 }
 
 /* ---------- timer ---------- */
@@ -444,6 +517,15 @@ function checkWin(lastKey) {
   state.over = true;
   cancelPending();
   stopTimer();
+  if (state.puzzle.daily) {
+    saveDaily({
+      date: state.puzzle.daily,
+      seconds: Math.round(state.elapsed),
+      mistakes: state.mistakes,
+      hints: state.hints,
+    });
+    markDailyPill();
+  }
   updateStatus();
   hideMessage();
   clearHint();
@@ -491,9 +573,15 @@ function showWin() {
   openModal({
     jar: [state.solution.size, state.solution.size],
     title: "Your jar is full",
-    sub: puzzleName(),
+    sub: state.puzzle.daily
+      ? `${puzzleName()}. A new daily arrives in ${untilTomorrow()}.`
+      : puzzleName(),
     stats: [["Time", fmt(Math.round(state.elapsed))], ["Hints", state.hints], ["Mistakes", state.mistakes]],
-    actions: [{ label: "Next puzzle", cls: "primary", onClick: () => newGame() }],
+    actions: [{
+      label: state.puzzle.daily ? "Play a Medium puzzle" : "Next puzzle",
+      cls: "primary",
+      onClick: () => newGame(),
+    }],
   });
 }
 
@@ -567,7 +655,7 @@ function bindControls() {
   $("#help").addEventListener("toggle", () => {
     try { localStorage.setItem("glowfield:help", $("#help").open ? "1" : "0"); } catch {}
   });
-  $("#restart").addEventListener("click", () => resetProgress());
+  $("#restart").addEventListener("click", () => { if (!isSolvedDaily()) resetProgress(); });
   $("#undo").addEventListener("click", undo);
   $("#hint").addEventListener("click", requestHint);
   $("#mode").addEventListener("click", () => {
@@ -609,6 +697,7 @@ function fromHash() {
   } catch {}
   $("#help").open = helpVisible;
   await loadDifficulties();
+  markDailyPill();
   await loadPuzzle(fromHash() ?? { difficulty: saved });
   window.addEventListener("hashchange", () => {
     const target = fromHash();
