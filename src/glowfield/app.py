@@ -132,22 +132,61 @@ def _read(name: str) -> str:
     return (STATIC / name).read_text()
 
 
-def _page(name: str, request: Request) -> HTMLResponse:
+def _page(
+    name: str, request: Request, path: str = "", og: tuple[str, str] | None = None
+) -> HTMLResponse:
     """Serve a page with a <base> pointing at wherever the app is mounted.
 
     All URLs in the pages are relative, so behind a proxy at e.g.
     /glowfield/ (uvicorn --root-path /glowfield) everything resolves there.
     """
     base = request.scope.get("root_path", "").rstrip("/") + "/"
-    html = _read(name).replace("<head>", f'<head>\n  <base href="{escape(base)}">', 1)
+    head = f'<head>\n  <base href="{escape(base)}">'
+    if og:
+        head += _og_tags(request, base, path, *og)
+    html = _read(name).replace("<head>", head, 1)
     return HTMLResponse(html)
+
+
+def _og_tags(request: Request, base: str, path: str, title: str, description: str) -> str:
+    """Open Graph / Twitter tags for link previews (Slack, Discord, etc.).
+
+    Crawlers need absolute URLs, so they're built from the request; behind
+    a proxy uvicorn takes the scheme from X-Forwarded-Proto and the host
+    from the Host header.
+    """
+    origin = f"{request.url.scheme}://{request.url.netloc}"
+    url, image = origin + base + path, origin + base + "static/og.png"
+    tags = {
+        "og:type": "website",
+        "og:site_name": "Glowfield",
+        "og:title": title,
+        "og:description": description,
+        "og:url": url,
+        "og:image": image,
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "og:image:alt": "Glowfield: fireflies glowing on a puzzle board at night",
+    }
+    lines = [f'<meta property="{k}" content="{escape(v)}">' for k, v in tags.items()]
+    lines += [
+        '<meta name="twitter:card" content="summary_large_image">',
+        f'<meta name="twitter:image" content="{escape(image)}">',
+    ]
+    return "".join("\n  " + line for line in lines)
 
 
 @app.get("/", include_in_schema=False)
 def index(request: Request) -> HTMLResponse:
-    return _page("index.html", request)
+    return _page("index.html", request, "", (
+        "Glowfield",
+        "Catch every firefly. A no-guess logic puzzle: the numbers never lie.",
+    ))
 
 
 @app.get("/about", include_in_schema=False)
 def about(request: Request) -> HTMLResponse:
-    return _page("about.html", request)
+    return _page("about.html", request, "about", (
+        "About Glowfield",
+        "Glowfield is a no-guess logic puzzle about catching fireflies.",
+    ))

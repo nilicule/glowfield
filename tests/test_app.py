@@ -72,3 +72,15 @@ def test_pages_use_relative_urls_under_a_root_path():
 
 def test_healthz():
     assert client.get("/healthz").json() == {"ok": True}
+
+
+def test_pages_have_absolute_open_graph_tags_behind_a_proxy():
+    sub = TestClient(app, root_path="/glowfield", base_url="https://example.com")
+    page = sub.get("/").text  # proxy stripped the prefix
+    assert '<meta property="og:title" content="Glowfield">' in page
+    assert '<meta property="og:url" content="https://example.com/glowfield/">' in page
+    assert ('<meta property="og:image" content="https://example.com/glowfield/static/og.png">'
+            in page)
+    about = sub.get("/about").text
+    assert '<meta property="og:url" content="https://example.com/glowfield/about">' in about
+    assert sub.get("/glowfield/static/og.png").headers["content-type"] == "image/png"
